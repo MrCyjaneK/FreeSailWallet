@@ -1,0 +1,59 @@
+--- a/pages/PassBackPage.qml
++++ b/pages/PassBackPage.qml
+@@ -7,14 +7,11 @@
+     objectName: "passBackPage"
+     allowedOrientations: Orientation.Portrait
+     property var pass: ({})
+-    readonly property var coverPass: pass
+     PassUpdateWatcher { page: page }
+-    readonly property bool _hasSettings: !!pass.canUpdate
+     onStatusChanged: {
+         _attach()
+         _leaveIfEmpty()
+     }
+-    on_HasSettingsChanged: _attach()
+     readonly property bool _stackBusy: pageStack.busy
+     on_StackBusyChanged: {
+         if (!_stackBusy) {
+@@ -38,10 +35,8 @@
+         if (status !== PageStatus.Active || pageStack.busy)
+             return
+         var next = pageStack.nextPage(page)
+-        if (_hasSettings && !next)
++        if (!next)
+             pageStack.pushAttached(Qt.resolvedUrl("PassSettingsPage.qml"), { "pass": pass })
+-        else if (!_hasSettings && next)
+-            pageStack.popAttached(page, PageStackAction.Immediate)
+     }
+     ScrollPositionKeeper {
+         page: page
+@@ -53,7 +48,7 @@
+             top: parent.top
+             left: parent.left
+             right: parent.right
+-            bottom: buttonArea.top
++            bottom: parent.bottom
+         }
+         clip: true
+         contentHeight: column.height
+@@ -92,20 +87,4 @@
+         }
+         VerticalScrollDecorator { }
+     }
+-    Item {
+-        id: buttonArea
+-        anchors {
+-            left: parent.left
+-            right: parent.right
+-            bottom: parent.bottom
+-        }
+-        readonly property real gap: Theme.paddingLarge * 2
+-        height: frontButton.height + 2 * gap
+-        Button {
+-            id: frontButton
+-            anchors.centerIn: parent
+-            text: qsTr("Front side")
+-            onClicked: pageStack.navigateBack()
+-        }
+-    }
+ }

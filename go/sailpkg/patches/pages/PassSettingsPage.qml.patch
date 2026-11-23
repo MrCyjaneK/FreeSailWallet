@@ -1,0 +1,241 @@
+--- a/pages/PassSettingsPage.qml
++++ b/pages/PassSettingsPage.qml
+@@ -7,9 +7,10 @@
+     objectName: "passSettingsPage"
+     allowedOrientations: Orientation.Portrait
+     property var pass: ({})
+-    readonly property var coverPass: pass
+     PassUpdateWatcher { page: page }
+     property bool _autoUpdate: false
++    readonly property var _cardFacts: _cardFactsOf(pass)
++    readonly property var _signFacts: _signFactsOf(pass)
+     function _readAutoUpdate() {
+         _autoUpdate = !!passModel.get(pass.passId).autoUpdate
+     }
+@@ -23,6 +24,105 @@
+         wallet.autoUpdateChanged.connect(_onAutoUpdateChanged)
+     }
+     Component.onDestruction: wallet.autoUpdateChanged.disconnect(_onAutoUpdateChanged)
++    function _text(value) {
++        if (value === undefined || value === null)
++            return ""
++        return ("" + value).trim()
++    }
++    function _date(value) {
++        var s = _text(value)
++        if (s.length === 0)
++            return ""
++        if (s.indexOf("T") < 0 && s.length >= 10) {
++            var parts = s.substring(0, 10).split("-")
++            if (parts.length === 3) {
++                var day = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10))
++                if (!isNaN(day.getTime()))
++                    return Qt.formatDate(day, Qt.DefaultLocaleShortDate)
++            }
++        }
++        var d = new Date(s)
++        if (isNaN(d.getTime()))
++            return s
++        return Qt.formatDateTime(d, Qt.DefaultLocaleShortDate)
++    }
++    function _yesNo(value) {
++        return value ? qsTr("Yes") : qsTr("No")
++    }
++    function _styleName(style) {
++        return style === "boardingPass" ? qsTr("Boarding pass")
++             : style === "coupon" ? qsTr("Coupon")
++             : style === "eventTicket" ? qsTr("Event ticket")
++             : style === "storeCard" ? qsTr("Store card")
++             : style === "generic" ? qsTr("Generic")
++             : _text(style)
++    }
++    function _transit(kind) {
++        return kind === "PKTransitTypeAir" ? qsTr("Air")
++             : kind === "PKTransitTypeTrain" ? qsTr("Train")
++             : kind === "PKTransitTypeBus" ? qsTr("Bus")
++             : kind === "PKTransitTypeBoat" ? qsTr("Boat")
++             : kind === "PKTransitTypeGeneric" ? qsTr("Generic transit")
++             : _text(kind)
++    }
++    function _join(list) {
++        if (!list || list.length === undefined)
++            return ""
++        var out = []
++        for (var i = 0; i < list.length; ++i) {
++            var s = _text(list[i])
++            if (s.length > 0)
++                out.push(s)
++        }
++        return out.join("\n")
++    }
++    function _add(rows, label, value) {
++        var s = _text(value)
++        if (s.length > 0)
++            rows.push({ "label": label, "value": s })
++    }
++    function _cardFactsOf(p) {
++        var rows = []
++        if (!p)
++            return rows
++        _add(rows, qsTr("Style"), _styleName(p.passStyle))
++        _add(rows, qsTr("Transit"), _transit(p.transitType))
++        _add(rows, qsTr("Organization"), p.organizationName)
++        _add(rows, qsTr("Description"), p.passDescription)
++        _add(rows, qsTr("Serial number"), p.serialNumber)
++        _add(rows, qsTr("Pass type"), p.passTypeIdentifier)
++        _add(rows, qsTr("Team"), p.teamIdentifier)
++        _add(rows, qsTr("Expires"), _date(p.expirationDate))
++        if (p.expired)
++            _add(rows, qsTr("Expired"), qsTr("Yes"))
++        if (p.voided)
++            _add(rows, qsTr("Voided"), qsTr("Yes"))
++        _add(rows, qsTr("Relevant date"), _date(p.relevantDate))
++        _add(rows, qsTr("Update address"), p.webServiceURL)
++        return rows
++    }
++    function _signFactsOf(p) {
++        var rows = []
++        if (!p || p.ownCard)
++            return rows
++        var v = p.verification || {}
++        _add(rows, qsTr("Trusted"), _yesNo(v.trusted))
++        _add(rows, qsTr("Manifest"), _yesNo(v.manifestOK))
++        _add(rows, qsTr("Signature"), _yesNo(v.signatureOK))
++        _add(rows, qsTr("Certificate chain"), _yesNo(v.chainOK))
++        _add(rows, qsTr("Matches certificate"), _yesNo(v.identityOK))
++        _add(rows, qsTr("Subject"), v.subject)
++        _add(rows, qsTr("Issuer"), v.issuer)
++        _add(rows, qsTr("Organization"), v.organization)
++        _add(rows, qsTr("Valid from"), _date(v.notBefore))
++        _add(rows, qsTr("Valid until"), _date(v.notAfter))
++        _add(rows, qsTr("Certificate pass type"), v.passTypeId)
++        _add(rows, qsTr("Certificate team"), v.teamId)
++        _add(rows, qsTr("Root"), v.root)
++        _add(rows, qsTr("Chain"), _join(v.chain))
++        _add(rows, qsTr("Problems"), _join(v.problems))
++        return rows
++    }
+     SilicaFlickable {
+         anchors.fill: parent
+         contentHeight: column.height + Theme.paddingLarge
+@@ -33,42 +133,94 @@
+                 title: qsTr("Card settings")
+                 description: PlainText.plain(page.pass.logoText)
+             }
+-            TextSwitch {
+-                objectName: "cardAutoUpdateSwitch"
+-                enabled: appSettings.internetAllowed
+-                text: qsTr("Automatic updates")
+-                description: qsTr("On startup, the app checks whether the issuer has a new version of the card.")
+-                checked: page._autoUpdate
+-                automaticCheck: false
+-                onClicked: wallet.setAutoUpdate(page.pass.passId, !checked)
++            Column {
++                width: parent.width
++                visible: !!page.pass.canUpdate
++                TextSwitch {
++                    objectName: "cardAutoUpdateSwitch"
++                    enabled: appSettings.internetAllowed
++                    text: qsTr("Automatic updates")
++                    description: qsTr("On startup, the app checks whether the issuer has a new version of the card.")
++                    checked: page._autoUpdate
++                    automaticCheck: false
++                    onClicked: wallet.setAutoUpdate(page.pass.passId, !checked)
++                }
++                Item {
++                    visible: !appSettings.internetAllowed
++                    width: 1
++                    height: Theme.paddingLarge
++                }
++                Label {
++                    visible: !appSettings.internetAllowed
++                    x: Theme.horizontalPageMargin
++                    width: parent.width - 2 * x
++                    horizontalAlignment: Text.AlignHCenter
++                    wrapMode: Text.Wrap
++                    color: Theme.highlightColor
++                    text: qsTr("Internet access is turned off in Settings")
++                }
++                Item {
++                    visible: !appSettings.internetAllowed
++                    width: parent.width
++                    height: settingsButton.height + 2 * Theme.paddingLarge
++                    Button {
++                        id: settingsButton
++                        objectName: "openSettingsButton"
++                        anchors.centerIn: parent
++                        text: qsTr("Open Settings")
++                        onClicked: pageStack.animatorPush(Qt.resolvedUrl("SettingsPage.qml"))
++                    }
++                }
+             }
+-            Item {
+-                visible: !appSettings.internetAllowed
+-                width: 1
+-                height: Theme.paddingLarge
++            SectionHeader {
++                text: qsTr("Card")
+             }
++            Repeater {
++                objectName: "cardFacts"
++                model: page._cardFacts
++                delegate: factDelegate
++            }
++            SectionHeader {
++                text: qsTr("Signature")
++            }
+             Label {
+-                visible: !appSettings.internetAllowed
++                objectName: "ownCardUnsigned"
++                visible: !!page.pass.ownCard
+                 x: Theme.horizontalPageMargin
+                 width: parent.width - 2 * x
+-                horizontalAlignment: Text.AlignHCenter
+                 wrapMode: Text.Wrap
+                 color: Theme.highlightColor
+-                text: qsTr("Internet access is turned off in Settings")
++                text: qsTr("This card was created in the app and is not signed.")
+             }
+-            Item {
+-                visible: !appSettings.internetAllowed
+-                width: parent.width
+-                height: settingsButton.height + 2 * Theme.paddingLarge
+-                Button {
+-                    id: settingsButton
+-                    objectName: "openSettingsButton"
+-                    anchors.centerIn: parent
+-                    text: qsTr("Open Settings")
+-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("SettingsPage.qml"))
+-                }
++            Repeater {
++                objectName: "signatureFacts"
++                model: page._signFacts
++                delegate: factDelegate
+             }
+         }
+         VerticalScrollDecorator { }
+     }
++    Component {
++        id: factDelegate
++        Column {
++            x: Theme.horizontalPageMargin
++            width: column.width - 2 * x
++            spacing: Theme.paddingSmall
++            Label {
++                width: parent.width
++                wrapMode: Text.Wrap
++                color: Theme.secondaryHighlightColor
++                font.pixelSize: Theme.fontSizeExtraSmall
++                text: modelData.label
++            }
++            Label {
++                width: parent.width
++                wrapMode: Text.WrapAnywhere
++                color: Theme.highlightColor
++                textFormat: Text.PlainText
++                text: modelData.value
++            }
++            Item { width: 1; height: Theme.paddingSmall }
++        }
++    }
+ }

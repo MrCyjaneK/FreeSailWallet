@@ -1,0 +1,197 @@
+--- a/pages/MainPage.qml
++++ b/pages/MainPage.qml
+@@ -16,19 +16,43 @@
+     }
+     function openDetail(index) {
+         var card = cards.itemAt(index)
+-        if (card)
+-            pageStack.animatorPush(Qt.resolvedUrl("PassDetailPage.qml"), { "pass": _passData(card) })
++        if (!card)
++            return
++        var pass = _passData(card)
++        _bringToFront(card.passId)
++        pageStack.animatorPush(Qt.resolvedUrl("PassDetailPage.qml"), { "pass": pass })
+     }
+     function openCode(index) {
+         var card = cards.itemAt(index)
+-        if (card && card.barcodeFormat)
+-            pageStack.animatorPush(Qt.resolvedUrl("FullscreenCodePage.qml"), { "pass": _passData(card) })
++        if (!card || !card.barcodeFormat)
++            return
++        var pass = _passData(card)
++        _bringToFront(card.passId)
++        pageStack.animatorPush(Qt.resolvedUrl("FullscreenCodePage.qml"), { "pass": pass })
+     }
+     function openDetailById(passId) {
+         var pass = passModel.get(passId)
+-        if (pass.passId !== undefined)
+-            pageStack.animatorPush(Qt.resolvedUrl("PassDetailPage.qml"), { "pass": pass })
++        if (pass.passId === undefined)
++            return
++        _bringToFront(passId)
++        pageStack.animatorPush(Qt.resolvedUrl("PassDetailPage.qml"), { "pass": pass })
+     }
++    // The front card is the last one, at the bottom of the stack. Follow it
++    // until the user scrolls.
++    property bool _followBottom: true
++    function _bringToFront(passId) {
++        if (passModel.archiveView)
++            return
++        _followBottom = true
++        wallet.bringToFront(passId)
++        _pinBottom()
++    }
++    function _pinBottom() {
++        var bottom = Math.max(0, flickable.contentHeight - flickable.height)
++        if (Math.abs(flickable.contentY - bottom) < 1)
++            return
++        flickable.contentY = bottom
++    }
+     property var _pendingOpen: []
+     property bool _addAccepted: false
+     property var _added: null
+@@ -160,10 +184,17 @@
+         _notify(qsTr("Could not delete the card"), "")
+     }
+     onStatusChanged: {
++        if (status === PageStatus.Active && _followBottom)
++            pinTimer.start()
+         if (status === PageStatus.Active && (_pendingOpen.length > 0 || _addAccepted
+                                              || (_confirmFiles.length > 0 && _confirmReplace >= 0)))
+             openTimer.start()
+     }
++    Timer {
++        id: pinTimer
++        interval: 0
++        onTriggered: if (page._followBottom) page._pinBottom()
++    }
+     ScrollPositionKeeper {
+         page: page
+         flickable: flickable
+@@ -189,8 +220,8 @@
+         id: autoUpdateNotification
+         Notification {
+             isTransient: true
+-            appName: "SailWallet"
+-            appIcon: "harbour-sailwallet"
++            appName: "FreeSailWallet"
++            appIcon: "harbour-freesailwallet"
+         }
+     }
+     function _onAutoUpdated(passId, messages) {
+@@ -201,12 +232,13 @@
+             body = (name.length > 0 ? name + " – " : "") + messages.join("\n")
+         _notify(qsTr("The card has been updated"), PlainText.plain(body))
+     }
+-    function _onUpdateFinished(passId, status, manual) {
++    function _onUpdateFinished(passId, status, manual, reason) {
+         if (!manual)
+             return
++        var failed = status !== "updated" && status !== "current"
+         _notify(status === "updated" ? qsTr("The card has been updated")
+                 : status === "current" ? qsTr("The card is up to date")
+-                : qsTr("Could not update the card"), "")
++                : qsTr("Could not update the card"), failed ? (reason || "") : "")
+     }
+     function _notify(summary, body) {
+         var notification = autoUpdateNotification.createObject(page, {
+@@ -230,10 +262,13 @@
+             top: parent.top
+             left: parent.left
+             right: parent.right
+-            bottom: newerArea.visible ? newerArea.top : buttonArea.top
++            bottom: newerArea.visible ? newerArea.top : parent.bottom
+         }
+         clip: true
+         contentHeight: content.height
++        onContentHeightChanged: if (page._followBottom) page._pinBottom()
++        onHeightChanged: if (page._followBottom) page._pinBottom()
++        onDraggingChanged: if (dragging) page._followBottom = false
+         PullDownMenu {
+             MenuItem {
+                 objectName: "aboutMenuItem"
+@@ -246,6 +281,20 @@
+                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("SettingsPage.qml"))
+             }
+             MenuItem {
++                objectName: "archiveMenuItem"
++                visible: wallet.storageAvailable && !passModel.loadFailed
++                text: passModel.archiveView ? qsTr("Cards") : qsTr("Archive")
++                onClicked: {
++                    var toArchive = !passModel.archiveView
++                    page._followBottom = !toArchive
++                    passModel.archiveView = toArchive
++                    if (toArchive)
++                        flickable.contentY = 0
++                    else
++                        page._pinBottom()
++                }
++            }
++            MenuItem {
+                 objectName: "addMenuItem"
+                 visible: wallet.storageAvailable && !passModel.loadFailed
+                 text: qsTr("Add")
+@@ -256,7 +305,7 @@
+             id: content
+             width: parent.width
+             PageHeader {
+-                title: "SailWallet"
++                title: passModel.archiveView ? qsTr("Archive") : "FreeSailWallet"
+                 description: passModel.count === 0 ? ""
+                            : passModel.count === 1 ? qsTr("%n card", "", 1)
+                            : qsTr("%n cards", "", passModel.count)
+@@ -320,36 +369,21 @@
+             enabled: passModel.count === 0
+             visible: !page._addAccepted
+             text: wallet.newerDatabase ? qsTr("Cards from a newer version")
++                : passModel.archiveView ? qsTr("No archived cards")
+                 : _storageOk ? qsTr("You currently have no saved tickets or cards")
+                              : qsTr("Cards could not be loaded")
+             hintText: wallet.newerDatabase
+                       ? (wallet.newerDatabaseVersion.length > 0
+-                         ? qsTr("Your cards were saved by a newer version of SailWallet (%1). This version cannot open them safely. Install the newer version of the app.").arg(wallet.newerDatabaseVersion)
+-                         : qsTr("Your cards were saved by a newer version of SailWallet. This version cannot open them safely. Install the newer version of the app."))
+-                      : _storageOk ? ""
+-                      : qsTr("The app storage is not available. Close the app and open it again.")
++                         ? qsTr("Your cards were saved by a newer version of FreeSailWallet (%1). This version cannot open them safely. Install the newer version of the app.").arg(wallet.newerDatabaseVersion)
++                         : qsTr("Your cards were saved by a newer version of FreeSailWallet. This version cannot open them safely. Install the newer version of the app."))
++                      : !_storageOk ? qsTr("The app storage is not available. Close the app and open it again.")
++                      : !passModel.archiveView && wallet.archivedCount > 0
++                        ? qsTr("Pull down and choose Archive to see archived cards.")
++                        : ""
+         }
+         VerticalScrollDecorator { }
+     }
+     Item {
+-        id: buttonArea
+-        objectName: "addButtonArea"
+-        anchors {
+-            left: parent.left
+-            right: parent.right
+-            bottom: parent.bottom
+-        }
+-        readonly property real gap: Theme.paddingLarge * 2
+-        visible: wallet.storageAvailable && !passModel.loadFailed
+-        height: visible ? addButton.height + 2 * gap : 0
+-        Button {
+-            id: addButton
+-            anchors.centerIn: parent
+-            text: qsTr("Add")
+-            onClicked: page.openAddPage()
+-        }
+-    }
+-    Item {
+         id: newerArea
+         objectName: "newerDatabaseArea"
+         anchors {
+@@ -357,8 +391,9 @@
+             right: parent.right
+             bottom: parent.bottom
+         }
++        readonly property real gap: Theme.paddingLarge * 2
+         visible: wallet.newerDatabase
+-        height: visible ? newerButtons.height + 2 * buttonArea.gap : 0
++        height: visible ? newerButtons.height + 2 * gap : 0
+         Column {
+             id: newerButtons
+             anchors.centerIn: parent

@@ -1,0 +1,10 @@
+--- a/components/BackupReasons.js
++++ b/components/BackupReasons.js
+@@ -1,6 +1,6 @@
+ .pragma library
+ function text(reason) {
+-    return reason === "notBackup" ? qsTr("The file is not a SailWallet backup.")
++    return reason === "notBackup" ? qsTr("The file is not a FreeSailWallet backup.")
+          : reason === "newerVersion" ? qsTr("The backup was created by a newer version of the app.")
+          : reason === "damaged" ? qsTr("The file is damaged.")
+          : reason === "unreadable" ? qsTr("The file cannot be opened.")

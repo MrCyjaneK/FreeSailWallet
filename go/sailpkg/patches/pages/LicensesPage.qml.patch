@@ -1,0 +1,11 @@
+--- a/pages/LicensesPage.qml
++++ b/pages/LicensesPage.qml
+@@ -18,7 +18,7 @@
+                 x: Theme.horizontalPageMargin
+                 width: parent.width - 2 * x
+                 wrapMode: Text.Wrap
+-                text: qsTr("SailWallet is built in part on the work of people who made their code freely available. Without the libraries below, the app could do less.")
++                text: qsTr("FreeSailWallet is built in part on the work of people who made their code freely available. Without the libraries below, the app could do less.")
+             }
+             Item { width: 1; height: Theme.paddingLarge }
+             Label {

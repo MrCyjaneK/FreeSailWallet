@@ -1,0 +1,10 @@
+--- a/pages/CardTypePage.qml
++++ b/pages/CardTypePage.qml
+@@ -1,6 +1,6 @@
+ import QtQuick 2.6
+ import Sailfish.Silica 1.0
+-import harbour.sailwallet 1.0
++import harbour.freesailwallet 1.0
+ Page {
+     id: page
+     objectName: "cardTypePage"

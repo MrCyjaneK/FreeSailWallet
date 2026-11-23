@@ -1,0 +1,66 @@
+--- a/pages/PassDetailPage.qml
++++ b/pages/PassDetailPage.qml
+@@ -6,14 +6,13 @@
+     id: page
+     allowedOrientations: Orientation.Portrait
+     property var pass: ({})
+-    readonly property var coverPass: pass
+     readonly property bool _hasBack: !!pass.backFields && pass.backFields.length > 0
+     PassUpdateWatcher { page: page }
+     ScrollPositionKeeper {
+         page: page
+         flickable: flickable
+     }
+-    readonly property string _attachedName: _hasBack ? "passBackPage" : pass.canUpdate ? "passSettingsPage" : ""
++    readonly property string _attachedName: _hasBack ? "passBackPage" : "passSettingsPage"
+     onStatusChanged: _attach()
+     on_AttachedNameChanged: _attach()
+     readonly property bool _stackBusy: pageStack.busy
+@@ -22,14 +21,12 @@
+         if (status !== PageStatus.Active || pageStack.busy)
+             return
+         var next = pageStack.nextPage(page)
+-        if (next ? next.objectName === _attachedName : _attachedName === "")
++        if (next && next.objectName === _attachedName)
+             return
+         if (_attachedName === "passBackPage")
+             pageStack.pushAttached(Qt.resolvedUrl("PassBackPage.qml"), { "pass": pass })
+-        else if (_attachedName === "passSettingsPage")
+-            pageStack.pushAttached(Qt.resolvedUrl("PassSettingsPage.qml"), { "pass": pass })
+         else
+-            pageStack.popAttached(page, PageStackAction.Immediate)
++            pageStack.pushAttached(Qt.resolvedUrl("PassSettingsPage.qml"), { "pass": pass })
+     }
+     SilicaFlickable {
+         id: flickable
+@@ -37,7 +34,7 @@
+             top: parent.top
+             left: parent.left
+             right: parent.right
+-            bottom: buttonArea.top
++            bottom: parent.bottom
+         }
+         clip: true
+         contentHeight: column.height
+@@ -89,21 +86,4 @@
+         }
+         VerticalScrollDecorator { }
+     }
+-    Item {
+-        id: buttonArea
+-        anchors {
+-            left: parent.left
+-            right: parent.right
+-            bottom: parent.bottom
+-        }
+-        readonly property real gap: Theme.paddingLarge * 2
+-        height: page._hasBack ? backButton.height + 2 * gap : Theme.horizontalPageMargin
+-        Button {
+-            id: backButton
+-            visible: page._hasBack
+-            anchors.centerIn: parent
+-            text: qsTr("Back side")
+-            onClicked: pageStack.navigateForward()
+-        }
+-    }
+ }

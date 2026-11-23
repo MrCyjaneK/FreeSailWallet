@@ -1,0 +1,275 @@
+--- a/cover/CoverPage.qml
++++ b/cover/CoverPage.qml
+@@ -1,145 +1,149 @@
+ import QtQuick 2.6
+ import Sailfish.Silica 1.0
++import "../components/Contrast.js" as Contrast
+ CoverBackground {
+     id: cover
+-    property var pass: null
+-    signal codeRequested()
+-    readonly property bool _card: !!pass && pass.passId !== undefined
+-    readonly property real _margin: Math.round(width * 0.068)
+-    readonly property real _badgeSize: Math.round(width * 0.137)
++    readonly property var pass: passModel.front || ({})
++    readonly property bool _card: pass.passId !== undefined
++    readonly property bool _code: _card && !!pass.barcodeFormat
++    readonly property bool _square: pass.barcodeShape === "square"
++    readonly property bool _stacked: pass.barcodeShape === "stacked"
++    readonly property color _paper: _card ? pass.backgroundColor : "transparent"
++    readonly property color _ink: _card
++            ? Contrast.readable(pass.foregroundColor, _paper, "#1a1a1a", "#ffffff") : "white"
++    readonly property color _labelInk: _card
++            ? Contrast.readable(pass.labelColor, _paper, "#5c5c5c", "#d0d0d0") : "white"
++    readonly property real _margin: Math.max(3, Math.round(width * 0.03))
++    readonly property real _badge: Math.round(width * 0.14)
+     readonly property string _imageKey: _card ? String(pass.imageKey || pass.passId) : ""
+-    readonly property var _fields: {
+-        var list = []
++    readonly property var _field: {
+         if (!_card)
+-            return list
+-        var header = pass.headerFields || []
++            return { "label": "", "value": "" }
+         var primary = pass.primaryFields || []
++        var header = pass.headerFields || []
+         var secondary = pass.secondaryFields || []
+-        if (header.length > 0)
+-            list.push({ "label": header[0].label, "value": header[0].value, "big": true })
+         if (pass.passStyle === "boardingPass" && primary.length >= 2)
+-            list.push({ "label": "", "value": primary[0].value + " → " + primary[1].value, "big": false })
+-        else if (primary.length > 0)
+-            list.push({ "label": primary[0].label, "value": primary[0].value, "big": false })
+-        else if (secondary.length > 0)
+-            list.push({ "label": secondary[0].label, "value": secondary[0].value, "big": false })
+-        return list
++            return { "label": "", "value": primary[0].value + " → " + primary[1].value }
++        if (primary.length > 0)
++            return { "label": primary[0].label || "", "value": primary[0].value || "" }
++        if (header.length > 0)
++            return { "label": header[0].label || "", "value": header[0].value || "" }
++        if (secondary.length > 0)
++            return { "label": secondary[0].label || "", "value": secondary[0].value || "" }
++        return { "label": "", "value": "" }
+     }
+-    Item {
++    Rectangle {
+         anchors.fill: parent
+         visible: cover._card
+-        Rectangle {
+-            anchors.fill: parent
+-            color: cover._card ? cover.pass.backgroundColor : "transparent"
+-        }
+-        Rectangle {
+-            anchors.fill: parent
+-            gradient: Gradient {
+-                GradientStop { position: 0.0; color: "transparent" }
+-                GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.55) }
+-            }
+-        }
++        color: cover._paper
++    }
++    Column {
++        id: top
++        visible: cover._card
++        x: cover._margin
++        y: cover._margin
++        width: parent.width - 2 * x
++        spacing: Math.round(cover._margin * 0.4)
+         Item {
+-            id: brand
+-            x: cover._margin
+-            y: cover._margin
+-            width: parent.width - 2 * x
+-            height: cover._badgeSize
++            width: parent.width
++            height: cover._badge
+             Image {
+                 id: logo
+-                visible: cover._card && cover.pass.hasLogo && status === Image.Ready
+-                height: cover._badgeSize
+-                width: visible ? Math.min(cover._badgeSize * 3, sourceSize.width * height / Math.max(1, sourceSize.height)) : 0
++                height: parent.height
++                width: visible ? Math.min(height * 2.4, sourceSize.width * height / Math.max(1, sourceSize.height)) : 0
++                visible: cover.pass.hasLogo && status === Image.Ready
+                 fillMode: Image.PreserveAspectFit
+                 smooth: true
+                 cache: false
+-                source: cover._card && cover.pass.hasLogo ? "image://pass/" + cover._imageKey + "/logo" : ""
++                source: cover.pass.hasLogo ? "image://pass/" + cover._imageKey + "/logo" : ""
+             }
+             Rectangle {
+                 id: badge
+-                visible: !logo.visible && cover._card && !!cover.pass.initials
+-                width: cover._badgeSize
++                visible: !logo.visible && !!cover.pass.initials
++                width: parent.height
+                 height: width
+                 radius: width / 2
+-                color: cover._card ? cover.pass.foregroundColor : "white"
++                color: cover._ink
+                 Label {
+-                    id: initialsLabel
+-                    readonly property rect glyphs: initialsMetrics.tightBoundingRect
+-                    x: Math.round(parent.width / 2 - (glyphs.x + glyphs.width / 2) + opticalCenter.offset(text, font))
+-                    y: Math.round(parent.height / 2 - (baselineOffset + glyphs.y + glyphs.height / 2))
+-                    text: cover._card ? cover.pass.initials : ""
++                    anchors.centerIn: parent
++                    text: cover.pass.initials || ""
+                     textFormat: Text.PlainText
+-                    color: cover._card ? cover.pass.backgroundColor : "black"
+-                    font.pixelSize: Math.round(cover._badgeSize * 0.4)
++                    color: cover._paper
++                    font.pixelSize: Math.round(parent.height * 0.4)
+                     font.bold: true
+                 }
+-                TextMetrics {
+-                    id: initialsMetrics
+-                    font: initialsLabel.font
+-                    text: initialsLabel.text
+-                }
+             }
+             Label {
+                 readonly property real _left: logo.visible ? logo.width : badge.visible ? badge.width : 0
+                 x: _left > 0 ? _left + Math.round(cover._margin * 0.5) : 0
+-                anchors.verticalCenter: parent.verticalCenter
+                 width: parent.width - x
+-                text: cover._card ? cover.pass.logoText : ""
++                anchors.verticalCenter: parent.verticalCenter
++                text: cover.pass.logoText || ""
+                 textFormat: Text.PlainText
+-                color: cover._card ? cover.pass.foregroundColor : "white"
+-                font.pixelSize: Math.round(cover.width * 0.077)
++                color: cover._ink
++                font.pixelSize: Math.round(cover.width * 0.072)
+                 font.bold: true
+                 truncationMode: TruncationMode.Fade
+             }
+         }
+-        Column {
+-            x: cover._margin
+-            y: brand.y + brand.height + Math.round(cover._margin * 1.5)
+-            width: parent.width - 2 * x
+-            spacing: Math.round(cover._margin * 1.2)
+-            Repeater {
+-                model: cover._fields
+-                Column {
+-                    width: parent.width
+-                    spacing: Math.round(cover.width * 0.01)
+-                    Label {
+-                        visible: text.length > 0
+-                        width: parent.width
+-                        text: modelData.label ? modelData.label.toUpperCase() : ""
+-                        textFormat: Text.PlainText
+-                        color: cover.pass.labelColor
+-                        font.pixelSize: Math.round(cover.width * 0.051)
+-                        truncationMode: TruncationMode.Fade
+-                    }
+-                    Label {
+-                        width: parent.width
+-                        text: modelData.value
+-                        textFormat: Text.PlainText
+-                        color: cover.pass.foregroundColor
+-                        font.pixelSize: Math.round(cover.width * (modelData.big ? 0.111 : 0.085))
+-                        wrapMode: modelData.big ? Text.NoWrap : Text.Wrap
+-                        maximumLineCount: modelData.big ? 1 : 2
+-                        truncationMode: TruncationMode.Fade
+-                    }
+-                }
+-            }
++        Label {
++            visible: text.length > 0
++            width: parent.width
++            text: cover._field.label ? cover._field.label.toUpperCase() : ""
++            textFormat: Text.PlainText
++            color: cover._labelInk
++            font.pixelSize: Math.round(cover.width * 0.048)
++            truncationMode: TruncationMode.Fade
+         }
++        Label {
++            id: valueText
++            width: parent.width
++            visible: text.length > 0
++            height: visible ? Math.ceil(font.pixelSize * lineHeight * 2) : 0
++            text: cover._field.value
++            textFormat: Text.PlainText
++            color: cover._ink
++            font.pixelSize: Math.round(cover.width * 0.078)
++            font.bold: true
++            wrapMode: Text.Wrap
++            maximumLineCount: 2
++            elide: Text.ElideRight
++            verticalAlignment: Text.AlignTop
++            lineHeightMode: Text.ProportionalHeight
++            lineHeight: 1.05
++        }
+     }
+-    Item {
+-        anchors.fill: parent
+-        visible: !cover._card
++    Rectangle {
++        visible: cover._code
++        anchors.left: parent.left
++        anchors.right: parent.right
++        anchors.bottom: parent.bottom
++        color: "white"
++        height: {
++            var room = Math.max(0, cover.height - top.y - top.height - cover._margin)
++            if (cover._square)
++                return Math.min(width, room)
++            return Math.min(room, Math.round(width * (cover._stacked ? 0.46 : 0.3)))
++        }
+         Image {
+-            objectName: "coverBackground"
+             anchors.fill: parent
+-            fillMode: Image.PreserveAspectCrop
+-            smooth: true
+-            source: "cover-background.jpg"
++            anchors.margins: cover._square ? Math.max(1, Math.round(parent.width * 0.02))
++                                           : Math.round(parent.height * 0.06)
++            fillMode: Image.PreserveAspectFit
++            smooth: false
++            cache: false
++            sourceSize.width: width
++            sourceSize.height: height
++            source: cover._code ? "image://pass/" + cover._imageKey + "/barcode" : ""
+         }
++    }
++    Item {
++        anchors.fill: parent
++        visible: !cover._card
+         Label {
+-            id: appName
+             anchors.horizontalCenter: parent.horizontalCenter
+             y: Math.round(parent.height * 0.605)
+-            text: "SailWallet"
++            text: "FreeSailWallet"
+             color: Theme.lightPrimaryColor
+             font.pixelSize: Math.round(cover.width * 0.085)
+         }
+@@ -148,22 +152,11 @@
+             anchors.horizontalCenter: parent.horizontalCenter
+             y: Math.round(parent.height * 0.69)
+             visible: wallet.storageAvailable && !passModel.loadFailed
+-            text: passModel.count === 0 ? qsTr("No cards")
+-                : passModel.count === 1 ? qsTr("%n card", "", 1)
+-                : qsTr("%n cards", "", passModel.count)
++            text: wallet.activeCount === 0 ? qsTr("No cards")
++                : wallet.activeCount === 1 ? qsTr("%n card", "", 1)
++                : qsTr("%n cards", "", wallet.activeCount)
+             color: Theme.lightSecondaryColor
+             font.pixelSize: Math.round(cover.width * 0.064)
+         }
+     }
+-    CoverActionList {
+-        enabled: cover._card && !!cover.pass.barcodeFormat
+-        CoverAction {
+-            iconSource: Qt.resolvedUrl("icons/z" + cover._iconScale() + "/icon-cover-code.png")
+-            onTriggered: cover.codeRequested()
+-        }
+-    }
+-    function _iconScale() {
+-        var r = Theme.pixelRatio
+-        return r >= 1.875 ? "2.0" : r >= 1.625 ? "1.75" : r >= 1.375 ? "1.5" : r >= 1.125 ? "1.25" : "1.0"
+-    }
+ }

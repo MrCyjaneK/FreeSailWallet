@@ -1,0 +1,13 @@
+--- a/pages/AddPage.qml
++++ b/pages/AddPage.qml
+@@ -76,8 +76,8 @@
+     Notification {
+         id: processedNotification
+         isTransient: true
+-        appName: "SailWallet"
+-        appIcon: "harbour-sailwallet"
++        appName: "FreeSailWallet"
++        appIcon: "harbour-freesailwallet"
+     }
+     SilicaFlickable {
+         anchors.fill: parent

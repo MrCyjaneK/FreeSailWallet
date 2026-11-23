@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Version=1.1
+X-Nemo-Application-Type=silica-qt5
+Icon=harbour-freesailwallet
+Exec=harbour-freesailwallet %U
+Name=FreeSailWallet
+MimeType=application/vnd.apple.pkpass;application/vnd.apple.pkpasses;
+X-Desktop-File-Install-Version=0.26
+
+[X-Sailjail]
+OrganizationName=net.mrcyjanek
+ApplicationName=FreeSailWallet
+Permissions=Camera;Downloads;Internet

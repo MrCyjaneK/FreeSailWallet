@@ -1,0 +1,124 @@
+--- a/components/PassCard.qml
++++ b/components/PassCard.qml
+@@ -1,6 +1,7 @@
+ import QtQuick 2.6
+ import Sailfish.Silica 1.0
+-import harbour.sailwallet 1.0
++import harbour.freesailwallet 1.0
++import "Contrast.js" as Contrast
+ Item {
+     id: card
+     property color color: "black"
+@@ -45,6 +46,8 @@
+     readonly property bool _codeMissing: codeUnavailable || codeImage.status === Image.Error
+     property color foregroundColor
+     property color labelColor
++    readonly property color onPaper: Contrast.readable(foregroundColor, color, "#1a1a1a", "#ffffff")
++    readonly property color labelOnPaper: Contrast.readable(labelColor, color, "#5c5c5c", "#d0d0d0")
+     property var headerFields: []
+     property var primaryFields: []
+     property var secondaryFields: []
+@@ -204,7 +207,7 @@
+                 width: card.badgeSize
+                 height: card.badgeSize
+                 radius: width / 2
+-                color: card.foregroundColor
++                color: card.onPaper
+                 Label {
+                     id: initialsLabel
+                     readonly property rect glyphs: initialsMetrics.tightBoundingRect
+@@ -231,7 +234,7 @@
+                 text: card.ownCard ? (card.expanded ? card.passLogoText : card.logoText)
+                     : (card.hasLogo && logo.status !== Image.Error) ? card.passLogoText : card.logoText
+                 textFormat: Text.PlainText
+-                color: card.foregroundColor
++                color: card.onPaper
+                 font.pixelSize: Theme.fontSizeMedium
+                 font.bold: true
+                 truncationMode: TruncationMode.Fade
+@@ -266,8 +269,8 @@
+                                        : Text.AlignRight
+                     label: modelData.label
+                     value: modelData.value
+-                    labelColor: card.labelColor
+-                    valueColor: card.foregroundColor
++                    labelColor: card.labelOnPaper
++                    valueColor: card.onPaper
+                     onNaturalWidthChanged: card._layoutHeader()
+                 }
+             }
+@@ -319,8 +322,8 @@
+             visible: card._headerOverflow.length > 0
+             width: parent.width
+             fields: card._front ? card._headerOverflow : []
+-            labelColor: card.labelColor
+-            valueColor: card.foregroundColor
++            labelColor: card.labelOnPaper
++            valueColor: card.onPaper
+         }
+         Item {
+             id: fromTo
+@@ -349,8 +352,8 @@
+                 maxWidth: fromTo.sideWidth
+                 label: card._fromTo ? card.primaryFields[0].label : ""
+                 value: card._fromTo ? card.primaryFields[0].value : ""
+-                labelColor: card.labelColor
+-                valueColor: card.foregroundColor
++                labelColor: card.labelOnPaper
++                valueColor: card.onPaper
+                 labelSize: fromTo.labelSize
+                 valueSize: fromTo.longNames ? Theme.fontSizeMedium : Theme.fontSizeHuge
+             }
+@@ -361,7 +364,7 @@
+                 height: width
+                 y: Math.round(Math.min(fromField.y + fromField.valueCapCenter, toField.y + toField.valueCapCenter) - height / 2)
+                 transitType: card.transitType
+-                color: card.foregroundColor
++                color: card.onPaper
+             }
+             PassField {
+                 id: toField
+@@ -374,8 +377,8 @@
+                 horizontalAlignment: Text.AlignRight
+                 label: card._fromTo ? card.primaryFields[1].label : ""
+                 value: card._fromTo ? card.primaryFields[1].value : ""
+-                labelColor: card.labelColor
+-                valueColor: card.foregroundColor
++                labelColor: card.labelOnPaper
++                valueColor: card.onPaper
+                 labelSize: fromTo.labelSize
+                 valueSize: fromTo.longNames ? Theme.fontSizeMedium : Theme.fontSizeHuge
+             }
+@@ -394,8 +397,8 @@
+                         maxWidth: primaryColumn.width
+                         label: modelData.label
+                         value: modelData.value
+-                        labelColor: card.labelColor
+-                        valueColor: card.foregroundColor
++                        labelColor: card.labelOnPaper
++                        valueColor: card.onPaper
+                         valueSize: Theme.fontSizeLarge
+                     }
+                 }
+@@ -419,8 +422,8 @@
+                 objectName: "fieldRow"
+                 width: body.width
+                 fields: modelData
+-                labelColor: card.labelColor
+-                valueColor: card.foregroundColor
++                labelColor: card.labelOnPaper
++                valueColor: card.onPaper
+             }
+         }
+     }
+@@ -565,8 +568,8 @@
+                 label: modelData.label
+                 value: modelData.value
+                 valueHtml: modelData.valueHtml || ""
+-                labelColor: card.labelColor
+-                valueColor: card.foregroundColor
++                labelColor: card.labelOnPaper
++                valueColor: card.onPaper
+             }
+         }
+     }

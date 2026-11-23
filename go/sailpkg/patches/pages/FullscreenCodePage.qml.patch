@@ -1,0 +1,10 @@
+--- a/pages/FullscreenCodePage.qml
++++ b/pages/FullscreenCodePage.qml
+@@ -7,7 +7,6 @@
+     objectName: "fullscreenCodePage"
+     allowedOrientations: Orientation.All
+     property var pass: ({})
+-    readonly property var coverPass: pass
+     PassUpdateWatcher { page: page }
+     readonly property bool _square: pass.barcodeShape === "square"
+     readonly property real _margin: Theme.horizontalPageMargin * 2

@@ -1,0 +1,99 @@
+--- a/pages/AboutPage.qml
++++ b/pages/AboutPage.qml
+@@ -3,7 +3,6 @@
+ Page {
+     id: page
+     allowedOrientations: Orientation.Portrait
+-    readonly property string _dateFormat: qsTr("d MMM yyyy")
+     SilicaFlickable {
+         anchors.fill: parent
+         contentHeight: column.height + Theme.paddingLarge
+@@ -26,7 +25,7 @@
+             Label {
+                 color: Theme.highlightColor
+                 anchors.horizontalCenter: parent.horizontalCenter
+-                text: "SailWallet"
++                text: "FreeSailWallet"
+                 font.pixelSize: Theme.fontSizeExtraLarge
+                 font.family: Theme.fontFamilyHeading
+             }
+@@ -37,8 +36,7 @@
+                 wrapMode: Text.Wrap
+                 font.pixelSize: Theme.fontSizeSmall
+                 color: Theme.secondaryHighlightColor
+-                text: qsTr("Version %1").arg(appInfo.version) + " · "
+-                      + qsTr("built %1").arg(Qt.formatDate(appInfo.buildDate, page._dateFormat))
++                text: qsTr("Version %1").arg(appInfo.version)
+             }
+             Item { width: 1; height: Theme.paddingMedium }
+             Label {
+@@ -66,17 +64,7 @@
+                 x: Theme.horizontalPageMargin
+                 width: parent.width - 2 * x
+                 wrapMode: Text.Wrap
+-                text: qsTr("Cards are stored only on this device. The app collects no usage data and sends nothing to the author. It connects to the internet only as described below.")
+-            }
+-            SectionHeader {
+-                text: qsTr("Internet access")
+-            }
+-            Label {
+-                color: Theme.highlightColor
+-                x: Theme.horizontalPageMargin
+-                width: parent.width - 2 * x
+-                wrapMode: Text.Wrap
+-                text: qsTr("Off by default. Once you allow it in Settings, the app connects only to the card issuer (for updates), to an address you scan or enter and to the servers it leads to (the service that issues the card; links found with “Find a card on the page”). Without it, you can still add cards from files or email, or by scanning a code, but cards are not updated.")
++                text: qsTr("Cards are stored only on this device.")
+             }
+             SectionHeader {
+                 text: qsTr("Permissions")
+@@ -85,8 +73,7 @@
+                 model: [
+                     { "name": qsTr("Camera"), "why": qsTr("Scanning card codes.") },
+                     { "name": qsTr("Downloads"), "why": qsTr("Loading .pkpass files and saving backups.") },
+-                    { "name": qsTr("Internet"),
+-                      "why": qsTr("Card updates and downloading cards from web addresses – only if you allow it in Settings.") }
++                    { "name": qsTr("Internet"), "why": qsTr("Card updates and downloading cards from web addresses") }
+                 ]
+                 Column {
+                     x: Theme.horizontalPageMargin
+@@ -151,12 +138,29 @@
+                 text: qsTr("Other", "about section")
+             }
+             BackgroundItem {
++                id: originalPackageItem
++                objectName: "originalPackageItem"
++                width: parent.width
++                onClicked: pageStack.animatorPush(Qt.resolvedUrl("OriginalPackagePage.qml"))
++                Label {
++                    anchors {
++                        left: parent.left
++                        right: parent.right
++                        leftMargin: Theme.horizontalPageMargin
++                        rightMargin: Theme.horizontalPageMargin
++                        verticalCenter: parent.verticalCenter
++                    }
++                    text: qsTr("Original package")
++                    color: originalPackageItem.highlighted ? Theme.highlightColor : Theme.primaryColor
++                }
++            }
++            BackgroundItem {
+                 id: appLicenseItem
+                 objectName: "appLicenseItem"
+                 width: parent.width
+                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("LicenseTextPage.qml"), {
+-                    "title": "SailWallet " + appInfo.version,
+-                    "license": "SailWallet License",
++                    "title": qsTr("Patcher"),
++                    "license": "GNU GPL",
+                     "text": appInfo.appLicenseText()
+                 })
+                 Label {
+@@ -167,7 +171,7 @@
+                         rightMargin: Theme.horizontalPageMargin
+                         verticalCenter: parent.verticalCenter
+                     }
+-                    text: qsTr("App license")
++                    text: qsTr("Patcher license")
+                     color: appLicenseItem.highlighted ? Theme.highlightColor : Theme.primaryColor
+                 }
+             }

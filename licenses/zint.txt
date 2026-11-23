@@ -1,0 +1,46 @@
+libzint - the open source barcode library
+Copyright (C) 2008-2025 Robin Stuart and contributors
+Copyright (C) 2016-2025 Harald Oehlmann (Codablock-F, backend/codablock.c)
+Copyright (C) 2024-2025 Antoine Merino (DX Film Edge, backend/dxfilmedge.c)
+Copyright (C) 2016 Zoe Stuart (Han Xin, backend/hanxin.h)
+Copyright (C) 2006 Kentaro Fukuchi (QR Code data, backend/qr.h)
+Copyright (C) 2004 Cliff Hones (Reed-Solomon encoder, backend/reedsol.c)
+(c) 2004 Adrian Kennard, Andrews & Arnold Ltd; (c) 2006 Stefan Schmidt (Data Matrix, backend/dmatrix.c, developed from IEC16022 bar code generation)
+Portions Copyright (C) 2004 Grandzebu (PDF417, backend/pdf417.c, adapted from "Code barre PDF 417 / PDF 417 barcode" v2.5.0)
+The function "USPS_MSB_Math_CRC11GenerateFrameCheckSequence" (backend/imail.c) is Copyright (C) 2006 United States Postal Service
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the project nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Parts of zint:
+
+UTF-8 decoder (backend/common.c):
+Copyright (c) 2008-2009 Bjoern Hoehrmann <bjoern@hoehrmann.de>
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+See https://bjoern.hoehrmann.de/utf-8/decoder/dfa/ for details.
+
+128-bit multiplication and division (backend/large.c) adapted from articles by F. W. Jacob, https://www.codeproject.com/Tips/618570/UInt-Multiplication-Squaring and https://www.codeproject.com/Tips/785014/UInt-Division-Modulus, licensed under the BSD License; these in turn are based on Hacker's Delight (2nd Edition, 2012) by Henry S. Warren, Jr.
+
+GS1 package type check (backend/gs1.c) adapted from GS1 Syntax Dictionary and Linters, https://github.com/gs1/gs1-syntax-dictionary, licensed under the Apache License 2.0 (full text in the zxing-cpp license).
+
+QR Code, Grid Matrix and Han Xin encoding mode optimisation (backend/qr.c, backend/gridmtx.c, backend/hanxin.c) adapted from Project Nayuki, https://www.nayuki.io/page/qr-code-generator-library:
+Copyright (c) Project Nayuki. (MIT License)
+
+Channel Code pre-calculations (backend/channel.c) and a composite symbol detail (backend/composite.c) taken from Barcode Writer in Pure PostScript (BWIPP), https://github.com/bwipp/postscriptbarcode:
+Copyright (c) 2004-2020 Terry Burton (MIT/X-Consortium license)
+
+MIT License (Project Nayuki, Barcode Writer in Pure PostScript):
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+The zint file writers (BMP, EMF, GIF, PCX, EPS, PNG, SVG, TIF) are not included in this application; barcodes are only drawn in memory.

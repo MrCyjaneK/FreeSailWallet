@@ -1,0 +1,25 @@
+_bin
+libwallet.a
+libwallet.so
+libwallet.h
+libharbourfreesailwalletengine.so
+libharbourfreesailwalletengine.h
+harbour-freesailwallet-sailqml
+harbour-freesailwallet
+Makefile
+*.o
+moc_*.cpp
+.qmake.stash
+rpm/*.tar.bz2
+rpms/
+*.list
+
+# SailWallet QML is not stored here. `go run ./cmd/sailqml checkout` writes it
+# from the embedded RPM and patches. These files are FreeSailWallet's own.
+qml/**/*.qml
+qml/**/*.js
+qml/cover/icons/
+!qml/harbour-freesailwallet.qml
+!qml/components/Contrast.js
+!qml/pages/FirstRunPage.qml
+!qml/pages/OriginalPackagePage.qml

@@ -1,0 +1,50 @@
+--- a/pages/SettingsPage.qml
++++ b/pages/SettingsPage.qml
+@@ -82,7 +82,10 @@
+                 text: qsTr("Allow internet access")
+                 description: qsTr("For card updates and downloading cards from web addresses.")
+                 checked: appSettings.internetAllowed
+-                onCheckedChanged: appSettings.internetAllowed = checked
++                onClicked: {
++                    appSettings.internetAllowed = !appSettings.internetAllowed
++                    checked = Qt.binding(function() { return appSettings.internetAllowed })
++                }
+             }
+             SectionHeader {
+                 visible: wallet.storageAvailable && !passModel.loadFailed
+@@ -162,6 +165,35 @@
+                     text: BackupReasons.text(page._restoreErrorReason)
+                 }
+             }
++            SectionHeader {
++                text: qsTr("Licenses")
++            }
++            BackgroundItem {
++                id: resetLicenseItem
++                objectName: "resetLicenseAcceptance"
++                width: parent.width
++                onClicked: appSettings.resetLicenseAcceptance()
++                Label {
++                    anchors {
++                        left: parent.left
++                        right: parent.right
++                        leftMargin: Theme.horizontalPageMargin
++                        rightMargin: Theme.horizontalPageMargin
++                        verticalCenter: parent.verticalCenter
++                    }
++                    text: qsTr("Reset license acceptance")
++                    color: resetLicenseItem.highlighted ? Theme.highlightColor : Theme.primaryColor
++                }
++            }
++            Label {
++                objectName: "resetLicenseHint"
++                x: Theme.horizontalPageMargin
++                width: parent.width - 2 * x
++                wrapMode: Text.Wrap
++                color: Theme.secondaryHighlightColor
++                font.pixelSize: Theme.fontSizeExtraSmall
++                text: qsTr("The license screen is shown the next time the app starts.")
++            }
+         }
+         VerticalScrollDecorator { }
+     }

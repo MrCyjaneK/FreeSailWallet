@@ -1,0 +1,33 @@
+--- a/components/PassActionsMenu.qml
++++ b/components/PassActionsMenu.qml
+@@ -81,7 +81,6 @@
+     }
+     MenuItem {
+         objectName: "settingsMenuItem"
+-        visible: !!menu.pass.canUpdate
+         text: qsTr("Card settings")
+         onClicked: pageStack.animatorPush(Qt.resolvedUrl("../pages/PassSettingsPage.qml"), { "pass": menu.pass })
+     }
+@@ -93,10 +92,19 @@
+         onClicked: passUpdater.updatePass(menu.pass.passId)
+     }
+     MenuItem {
+-        visible: !!menu.pass.barcodeFormat
+-        text: qsTr("Show code")
+-        onClicked: pageStack.animatorPush(Qt.resolvedUrl("../pages/FullscreenCodePage.qml"), { "pass": menu.pass })
++        objectName: "archiveMenuItem"
++        text: menu.pass.archived ? qsTr("Unarchive") : qsTr("Archive")
++        onClicked: menu._setArchived(!menu.pass.archived)
+     }
++    function _setArchived(archived) {
++        var id = menu.pass.passId
++        var ok = archived ? wallet.archive(id) : wallet.unarchive(id)
++        if (!ok)
++            return
++        var fresh = passModel.get(id)
++        if (fresh.passId !== undefined && menu.ownerPage)
++            menu.ownerPage.pass = fresh
++    }
+     readonly property int _ownerStatus: ownerPage ? ownerPage.status : PageStatus.Inactive
+     on_OwnerStatusChanged: _handleOwnerActive()
+     on_RemoveRequestedChanged: _handleOwnerActive()
